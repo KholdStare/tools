@@ -1,4 +1,4 @@
-THIS_DIR := $(dir $(firstword $(MAKEFILE_LIST)))
+THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
 .PHONY: \
@@ -7,8 +7,11 @@ SRC_DIR := $(THIS_DIR)/src
 	tmux_install \
 	libevent_install \
 	ninja_install \
+	ccache_install \
+	asciidoc_install \
+	ctags_install \
 
-all: vim_install tmux_install ninja_install
+all: ccache_install vim_install tmux_install ninja_install ctags_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
 INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
@@ -31,9 +34,14 @@ submodules: .gitmodules
 
 WGET_TEMPLATE = cd $(SRC_DIR) \
 	&& mkdir $(1) \
-	&& wget $(2) \
-	&& tar -xf $(1)*.tar.gz -C $(1) --strip-components 1 \
-	&& rm $(1)*.tar.gz
+	&& wget -O $(1).tar.gz $(2) \
+	&& tar -xf $(1).tar.gz -C $(1) --strip-components 1 \
+	&& rm $(1).tar.gz
+
+GIT_CLONE_TEMPLATE = cd $(SRC_DIR) \
+	&& git clone $(2) $(1) \
+	&& cd $(1) \
+    && git checkout $(3)
 
 CONFIG_MAKE_INSTALL_TEMPLATE = cd $< \
 	&& PKG_CONFIG_PATH=$(INSTALL_PREFIX)/lib/pkgconfig ./configure --prefix=$(INSTALL_PREFIX) $(1) \
@@ -44,11 +52,20 @@ CONFIG_MAKE_INSTALL_TEMPLATE = cd $< \
 # vim
 #
 $(SRC_DIR)/vim:
-	cd $(SRC_DIR) \
-		&& git clone https://github.com/vim/vim.git
+	$(call GIT_CLONE_TEMPLATE,vim,https://github.com/vim/vim.git,master)
 $(INSTALL_PREFIX)/bin/vim: $(SRC_DIR)/vim
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,--with-features=huge)
 vim_install: $(INSTALL_PREFIX)/bin/vim
+
+# ======================
+# ctags
+#
+$(SRC_DIR)/ctags:
+	$(call WGET_TEMPLATE,ctags,'https://downloads.sourceforge.net/project/ctags/ctags/5.8/ctags-5.8.tar.gz?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fctags%2Ffiles%2Fctags%2F5.8%2F&ts=1510697695&use_mirror=pilotfiber')
+$(INSTALL_PREFIX)/bin/ctags: $(SRC_DIR)/ctags
+	patch $</routines.c $(SRC_DIR)/ctags.patch
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+ctags_install: $(INSTALL_PREFIX)/bin/ctags
 
 # ======================
 # libevent
@@ -67,6 +84,30 @@ $(SRC_DIR)/tmux:
 $(INSTALL_PREFIX)/bin/tmux: $(SRC_DIR)/tmux libevent_install
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
 tmux_install: $(INSTALL_PREFIX)/bin/tmux
+
+# ======================
+# asciidoc
+#
+$(SRC_DIR)/asciidoc:
+	$(call GIT_CLONE_TEMPLATE,asciidoc,https://github.com/asciidoc/asciidoc,8.6.9)
+$(INSTALL_PREFIX)/bin/asciidoc: $(SRC_DIR)/asciidoc
+	cd $< \
+		&& autoconf \
+		&& $(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+asciidoc_install: $(INSTALL_PREFIX)/bin/asciidoc
+
+# ======================
+# ccache
+#
+$(SRC_DIR)/ccache:
+	$(call WGET_TEMPLATE,ccache,https://github.com/ccache/ccache/archive/v3.3.4.tar.gz)
+$(INSTALL_PREFIX)/bin/ccache: $(SRC_DIR)/ccache $(INSTALL_PREFIX)/bin/asciidoc
+	cd $< \
+		&& ./autogen.sh \
+		&& PKG_CONFIG_PATH=$(INSTALL_PREFIX)/lib/pkgconfig ./configure --prefix=$(INSTALL_PREFIX) $(1) \
+		&& make -j 20 \
+		&& make MANPAGE_XSL=$(INSTALL_PREFIX)/etc/asciidoc/docbook-xsl/manpage.xsl install
+ccache_install: $(INSTALL_PREFIX)/bin/ccache
 
 # ======================
 # Ninja
