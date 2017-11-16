@@ -51,6 +51,15 @@ $(INSTALL_PREFIX)/bin/vim: $(SRC_DIR)/vim
 vim_install: $(INSTALL_PREFIX)/bin/vim
 
 # ======================
+# fzf
+#
+$(HOME)/.fzf:
+	git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf \
+	&& ~/.fzf/install
+.PHONY: fzf_install
+fzf_install: $(HOME)/.fzf
+
+# ======================
 # emacs
 #
 $(SRC_DIR)/emacs:
