@@ -1,16 +1,7 @@
 THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
-.PHONY: \
-	submodules \
-	ag_install \
-	tmux_install \
-	libevent_install \
-	ninja_install \
-	ccache_install \
-	asciidoc_install \
-	ctags_install \
-
+.PHONY: all
 all: ccache_install vim_install tmux_install ninja_install ctags_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
@@ -19,6 +10,7 @@ INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
 $(INSTALL_PREFIX):
 	mkdir -p $(INSTALL_PREFIX)
 
+.PHONY: submodules
 submodules: .gitmodules
 	git submodule update --init --recursive
 
@@ -55,7 +47,18 @@ $(SRC_DIR)/vim:
 	$(call GIT_CLONE_TEMPLATE,vim,https://github.com/vim/vim.git,master)
 $(INSTALL_PREFIX)/bin/vim: $(SRC_DIR)/vim
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,--with-features=huge)
+.PHONY: vim_install
 vim_install: $(INSTALL_PREFIX)/bin/vim
+
+# ======================
+# emacs
+#
+$(SRC_DIR)/emacs:
+	$(call WGET_TEMPLATE,emacs,'http://reflection.oss.ou.edu/gnu/emacs/emacs-25.3.tar.gz')
+$(INSTALL_PREFIX)/bin/emacs: $(SRC_DIR)/emacs
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,--with-gif=no)
+.PHONY: emacs_install
+emacs_install: $(INSTALL_PREFIX)/bin/emacs
 
 # ======================
 # ctags
@@ -65,6 +68,7 @@ $(SRC_DIR)/ctags:
 $(INSTALL_PREFIX)/bin/ctags: $(SRC_DIR)/ctags
 	patch $</routines.c $(SRC_DIR)/ctags.patch
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: ctags_install
 ctags_install: $(INSTALL_PREFIX)/bin/ctags
 
 # ======================
@@ -74,6 +78,7 @@ $(SRC_DIR)/libevent:
 	$(call WGET_TEMPLATE,libevent,'https://github.com/libevent/libevent/releases/download/release-2.1.8-stable/libevent-2.1.8-stable.tar.gz')
 $(INSTALL_PREFIX)/lib/libevent.so: $(SRC_DIR)/libevent
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: libevent_install
 libevent_install: $(INSTALL_PREFIX)/lib/libevent.so
 
 # ======================
@@ -83,6 +88,7 @@ $(SRC_DIR)/tmux:
 	$(call WGET_TEMPLATE,tmux,https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz)
 $(INSTALL_PREFIX)/bin/tmux: $(SRC_DIR)/tmux libevent_install
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: tmux_install
 tmux_install: $(INSTALL_PREFIX)/bin/tmux
 
 # ======================
@@ -94,6 +100,7 @@ $(INSTALL_PREFIX)/bin/asciidoc: $(SRC_DIR)/asciidoc
 	cd $< \
 		&& autoconf \
 		&& $(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: asciidoc_install
 asciidoc_install: $(INSTALL_PREFIX)/bin/asciidoc
 
 # ======================
@@ -107,6 +114,7 @@ $(INSTALL_PREFIX)/bin/ccache: $(SRC_DIR)/ccache $(INSTALL_PREFIX)/bin/asciidoc
 		&& PKG_CONFIG_PATH=$(INSTALL_PREFIX)/lib/pkgconfig ./configure --prefix=$(INSTALL_PREFIX) $(1) \
 		&& make -j 20 \
 		&& make MANPAGE_XSL=$(INSTALL_PREFIX)/etc/asciidoc/docbook-xsl/manpage.xsl install
+.PHONY: ccache_install
 ccache_install: $(INSTALL_PREFIX)/bin/ccache
 
 # ======================
@@ -122,12 +130,14 @@ $(SRC_DIR)/ninja/ninja: $(SRC_DIR)/ninja
 		&& ./configure.py --bootstrap
 $(INSTALL_PREFIX)/bin/ninja: $(SRC_DIR)/ninja/ninja
 	cp $< $@
+.PHONY: ninja_install
 ninja_install: $(INSTALL_PREFIX)/bin/ninja
 
 # ======================
 # Ag
 #
 $(SRC_DIR)/the_silver_searcher: | submodules
+.PHONY: ag_install
 ag_install: $(INSTALL_PREFIX)/bin/ag
 
 # sudo apt-get install -y automake pkg-config libpcre3-dev zlib1g-dev liblzma-dev
