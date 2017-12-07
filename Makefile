@@ -145,6 +145,29 @@ $(INSTALL_PREFIX)/bin/ninja: $(SRC_DIR)/ninja/ninja
 ninja_install: $(INSTALL_PREFIX)/bin/ninja
 
 # ======================
+# Texinfo
+#
+$(SRC_DIR)/texinfo:
+	$(call WGET_TEMPLATE,texinfo,http://ftp.gnu.org/gnu/texinfo/texinfo-6.5.tar.xz,xz)
+$(INSTALL_PREFIX)/bin/makeinfo: $(SRC_DIR)/texinfo
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: texinfo_install
+texinfo_install: $(INSTALL_PREFIX)/bin/makeinfo
+
+
+# ======================
+# CGDB
+#
+$(SRC_DIR)/cgdb:
+	$(call WGET_TEMPLATE,cgdb,https://cgdb.me/files/cgdb-0.7.0.tar.gz,gz)
+$(INSTALL_PREFIX)/bin/cgdb: $(SRC_DIR)/cgdb $(INSTALL_PREFIX)/bin/makeinfo
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: cgdb_install
+cgdb_install: $(INSTALL_PREFIX)/bin/cgdb
+
+
+
+# ======================
 # clang
 #
 
@@ -177,6 +200,19 @@ clang_install: $(INSTALL_PREFIX)/bin/clang
 # rtags
 #
 
+$(SRC_DIR)/rtags:
+	cd $(SRC_DIR) \
+		&& git clone --recursive https://github.com/Andersbakken/rtags.git
+$(INSTALL_PREFIX)/bin/rdm: $(SRC_DIR)/rtags # $(INSTALL_PREFIX)/bin/clang $(INSTALL_PREFIX)/bin/emacs
+	cd $< \
+		&& mkdir -p build \
+		&& cd build \
+		&& rm -rf CMakeCache.txt CMakeFiles \
+		&& CC=$(shell which gcc) CXX=$(shell which g++) cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .. \
+		&& ninja \
+		&& cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -P cmake_install.cmake
+.PHONY: rtags_install
+rtags_install: $(INSTALL_PREFIX)/bin/rdm
 
 
 # ======================
