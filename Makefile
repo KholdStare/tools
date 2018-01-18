@@ -26,7 +26,7 @@ submodules: .gitmodules
 
 WGET_TEMPLATE = cd $(SRC_DIR) \
 	&& mkdir $(1) \
-	&& wget -O $(1).tar.$(3) $(2) \
+	&& wget --no-check-certificate -O $(1).tar.$(3) $(2) \
 	&& tar -xf $(1).tar.$(3) -C $(1) --strip-components 1 \
 	&& rm $(1).tar.$(3)
 
@@ -227,3 +227,14 @@ $(INSTALL_PREFIX)/bin/ag: $(SRC_DIR)/the_silver_searcher $(INSTALL_PREFIX)
 	cd the_silver_searcher \
 		&& ./build.sh --prefix=$(INSTALL_PREFIX) \
 		&& $(MAKE) install
+
+
+# ======================
+# DBeaver
+#
+$(SRC_DIR)/dbeaver:
+	$(call WGET_TEMPLATE,dbeaver,https://dbeaver.jkiss.org/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz,gz)
+.PHONY: dbeaver_install
+$(INSTALL_PREFIX)/bin/dbeaver: $(SRC_DIR)/dbeaver
+	ln -s $</dbeaver $@
+dbeaver_install: $(INSTALL_PREFIX)/bin/dbeaver
