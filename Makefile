@@ -238,3 +238,14 @@ $(SRC_DIR)/dbeaver:
 $(INSTALL_PREFIX)/bin/dbeaver: $(SRC_DIR)/dbeaver
 	ln -s $</dbeaver $@
 dbeaver_install: $(INSTALL_PREFIX)/bin/dbeaver
+
+# ======================
+# Vertica Client drivers
+#
+$(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar:
+	cd $(INSTALL_PREFIX) \
+    && wget --no-check-certificate -O vertica-client.tar.gz https://my.vertica.com/client_drivers/8.1.x/8.1.1-7/vertica-client-8.1.1-7.x86_64.tar.gz \
+	&& tar -xf vertica-client.tar.gz \
+	&& rm vertica-client.tar.gz
+.PHONY: vertica_drivers_install
+vertica_drivers_install: $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar
