@@ -2,7 +2,7 @@ THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
 .PHONY: all
-all: ccache_install vim_install tmux_install ninja_install ctags_install emacs_install
+all: ccache_install vim_install tmux_install ninja_install ctags_install emacs_install fzf_install cgdb_install dbeaver_install rtags_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
 INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
@@ -165,37 +165,6 @@ $(INSTALL_PREFIX)/bin/cgdb: $(SRC_DIR)/cgdb $(INSTALL_PREFIX)/bin/makeinfo
 .PHONY: cgdb_install
 cgdb_install: $(INSTALL_PREFIX)/bin/cgdb
 
-
-
-# ======================
-# clang
-#
-
-$(SRC_DIR)/llvm:
-	$(call WGET_TEMPLATE,llvm,http://releases.llvm.org/5.0.0/llvm-5.0.0.src.tar.xz,xz)
-$(SRC_DIR)/llvm/tools/clang: $(SRC_DIR)/llvm
-	cd $(SRC_DIR) \
-		&& mkdir $@ \
-		&& wget -O clang.tar.xz releases.llvm.org/5.0.0/cfe-5.0.0.src.tar.xz \
-		&& tar -xf clang.tar.xz -C $@ --strip-components 1 \
-		&& rm clang.tar.xz
-$(SRC_DIR)/llvm/tools/clang/tools/extra: $(SRC_DIR)/llvm/tools/clang
-	cd $(SRC_DIR) \
-		&& mkdir $@ \
-		&& wget -O clang-tools-extra.tar.xz releases.llvm.org/5.0.0/clang-tools-extra-5.0.0.src.tar.xz \
-		&& tar -xf clang-tools-extra.tar.xz -C $@ --strip-components 1 \
-		&& rm clang-tools-extra.tar.xz
-$(INSTALL_PREFIX)/bin/clang: $(SRC_DIR)/llvm $(SRC_DIR)/llvm/tools/clang $(SRC_DIR)/llvm/tools/clang/tools/extra ninja_install
-	cd $< \
-		&& mkdir -p build \
-		&& cd build \
-		&& rm -rf CMakeCache.txt CMakeFiles \
-		&& CC=$(shell which gcc) CXX=$(shell which g++) cmake -G Ninja -DPYTHON_EXECUTABLE:FILEPATH=python3 -DCMAKE_BUILD_TYPE=Release .. \
-		&& ninja \
-		&& cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -P cmake_install.cmake
-.PHONY: clang_install
-clang_install: $(INSTALL_PREFIX)/bin/clang
-
 # ======================
 # rtags
 #
@@ -203,7 +172,7 @@ clang_install: $(INSTALL_PREFIX)/bin/clang
 $(SRC_DIR)/rtags:
 	cd $(SRC_DIR) \
 		&& git clone --recursive https://github.com/Andersbakken/rtags.git
-$(INSTALL_PREFIX)/bin/rdm: $(SRC_DIR)/rtags # $(INSTALL_PREFIX)/bin/clang $(INSTALL_PREFIX)/bin/emacs
+$(INSTALL_PREFIX)/bin/rdm: $(SRC_DIR)/rtags $(INSTALL_PREFIX)/bin/emacs
 	cd $< \
 		&& mkdir -p build \
 		&& cd build \
