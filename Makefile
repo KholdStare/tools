@@ -122,7 +122,7 @@ $(SRC_DIR)/ccache:
 $(INSTALL_PREFIX)/bin/ccache: $(SRC_DIR)/ccache $(INSTALL_PREFIX)/bin/asciidoc
 	cd $< \
 		&& ./autogen.sh \
-		&& PKG_CONFIG_PATH=$(INSTALL_PREFIX)/lib/pkgconfig ./configure --prefix=$(INSTALL_PREFIX) $(1) \
+		&& PKG_CONFIG_PATH=$(INSTALL_PREFIX)/lib/pkgconfig CFLAGS=-Wimplicit-fallthrough=0 ./configure --prefix=$(INSTALL_PREFIX) $(1) \
 		&& make -j 20 \
 		&& make MANPAGE_XSL=$(INSTALL_PREFIX)/etc/asciidoc/docbook-xsl/manpage.xsl install
 .PHONY: ccache_install
