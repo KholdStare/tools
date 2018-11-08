@@ -31,7 +31,7 @@ WGET_TEMPLATE = cd $(SRC_DIR) \
 	&& rm $(1).tar.$(3)
 
 GIT_CLONE_TEMPLATE = cd $(SRC_DIR) \
-	&& git clone $(2) $(1) \
+	&& git clone --recursive $(2) $(1) \
 	&& cd $(1) \
 	&& git checkout $(3)
 
@@ -118,7 +118,7 @@ asciidoc_install: $(INSTALL_PREFIX)/bin/asciidoc
 # ccache
 #
 $(SRC_DIR)/ccache:
-	$(call WGET_TEMPLATE,ccache,https://github.com/ccache/ccache/archive/v3.3.4.tar.gz,gz)
+	$(call WGET_TEMPLATE,ccache,https://github.com/ccache/ccache/archive/v3.4.2.tar.gz,gz)
 $(INSTALL_PREFIX)/bin/ccache: $(SRC_DIR)/ccache $(INSTALL_PREFIX)/bin/asciidoc
 	cd $< \
 		&& ./autogen.sh \
@@ -213,8 +213,18 @@ dbeaver_install: $(INSTALL_PREFIX)/bin/dbeaver
 #
 $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar:
 	cd $(INSTALL_PREFIX) \
-    && wget --no-check-certificate -O vertica-client.tar.gz https://my.vertica.com/client_drivers/8.1.x/8.1.1-7/vertica-client-8.1.1-7.x86_64.tar.gz \
+	&& wget --no-check-certificate -O vertica-client.tar.gz https://my.vertica.com/client_drivers/8.1.x/8.1.1-7/vertica-client-8.1.1-7.x86_64.tar.gz \
 	&& tar -xf vertica-client.tar.gz \
 	&& rm vertica-client.tar.gz
 .PHONY: vertica_drivers_install
 vertica_drivers_install: $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar
+
+# ======================
+# jucipp
+#
+$(SRC_DIR)/jucipp:
+	$(call GIT_CLONE_TEMPLATE,jucipp,https://github.com/cppit/jucipp.git,master)
+$(INSTALL_PREFIX)/bin/jucipp: $(SRC_DIR)/jucipp
+.PHONY: jucipp_install
+jucipp_install: $(INSTALL_PREFIX)/bin/jucipp
+
