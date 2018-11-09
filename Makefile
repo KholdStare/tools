@@ -2,7 +2,7 @@ THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
 .PHONY: all
-all: ccache_install vim_install tmux_install ninja_install ctags_install emacs_install fzf_install cgdb_install dbeaver_install rtags_install
+all: git_install ccache_install vim_install tmux_install ctags_install emacs_install fzf_install gdb_install cgdb_install dbeaver_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
 INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
@@ -40,7 +40,15 @@ CONFIG_MAKE_INSTALL_TEMPLATE = cd $< \
 	&& make -j 20 \
 	&& make install
 
-
+# ======================
+# git
+#
+$(SRC_DIR)/git:
+	$(call WGET_TEMPLATE,git,'https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.19.1.tar.xz',xz)
+$(INSTALL_PREFIX)/bin/git: $(SRC_DIR)/git
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: git_install
+git_install: $(INSTALL_PREFIX)/bin/git
 
 # ======================
 # vim
@@ -156,6 +164,17 @@ texinfo_install: $(INSTALL_PREFIX)/bin/makeinfo
 
 
 # ======================
+# GDB
+#
+$(SRC_DIR)/gdb:
+	$(call WGET_TEMPLATE,gdb,http://ftp.gnu.org/gnu/gdb/gdb-8.2.tar.xz,xz)
+$(INSTALL_PREFIX)/bin/gdb: $(SRC_DIR)/gdb
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+.PHONY: gdb_install
+gdb_install: $(INSTALL_PREFIX)/bin/gdb
+
+
+# ======================
 # CGDB
 #
 $(SRC_DIR)/cgdb:
@@ -225,6 +244,13 @@ vertica_drivers_install: $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1
 $(SRC_DIR)/jucipp:
 	$(call GIT_CLONE_TEMPLATE,jucipp,https://github.com/cppit/jucipp.git,master)
 $(INSTALL_PREFIX)/bin/jucipp: $(SRC_DIR)/jucipp
+	cd $< \
+		&& mkdir -p build \
+		&& cd build \
+		&& rm -rf CMakeCache.txt CMakeFiles \
+		&& CC=$(shell which gcc) CXX=$(shell which g++) cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .. \
+		&& ninja \
+		&& cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -P cmake_install.cmake
 .PHONY: jucipp_install
 jucipp_install: $(INSTALL_PREFIX)/bin/jucipp
 
