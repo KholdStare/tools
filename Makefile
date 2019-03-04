@@ -105,7 +105,7 @@ libevent_install: $(INSTALL_PREFIX)/lib/libevent.so
 #
 $(SRC_DIR)/tmux:
 	$(call WGET_TEMPLATE,tmux,https://github.com/tmux/tmux/releases/download/2.6/tmux-2.6.tar.gz,gz)
-$(INSTALL_PREFIX)/bin/tmux: $(SRC_DIR)/tmux libevent_install
+$(INSTALL_PREFIX)/bin/tmux: $(SRC_DIR)/tmux $(INSTALL_PREFIX)/lib/libevent.so
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
 .PHONY: tmux_install
 tmux_install: $(INSTALL_PREFIX)/bin/tmux
@@ -168,7 +168,7 @@ texinfo_install: $(INSTALL_PREFIX)/bin/makeinfo
 #
 $(SRC_DIR)/gdb:
 	$(call WGET_TEMPLATE,gdb,http://ftp.gnu.org/gnu/gdb/gdb-8.2.tar.xz,xz)
-$(INSTALL_PREFIX)/bin/gdb: $(SRC_DIR)/gdb
+$(INSTALL_PREFIX)/bin/gdb: $(SRC_DIR)/gdb $(INSTALL_PREFIX)/bin/makeinfo
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
 .PHONY: gdb_install
 gdb_install: $(INSTALL_PREFIX)/bin/gdb
@@ -254,3 +254,23 @@ $(INSTALL_PREFIX)/bin/jucipp: $(SRC_DIR)/jucipp
 .PHONY: jucipp_install
 jucipp_install: $(INSTALL_PREFIX)/bin/jucipp
 
+
+# ======================
+# valgrind
+#
+$(SRC_DIR)/valgrind:
+	$(call WGET_TEMPLATE,valgrind,http://www.valgrind.org/downloads/valgrind-3.14.0.tar.bz2,bz2)
+.PHONY: valgrind_install
+$(INSTALL_PREFIX)/bin/cachegrind: $(SRC_DIR)/valgrind
+	$(call CONFIG_MAKE_INSTALL_TEMPLATE,)
+valgrind_install: $(INSTALL_PREFIX)/bin/cachegrind
+
+# ======================
+# Git credential manager
+#
+#
+$(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar:
+	cd $(INSTALL_PREFIX)/bin \
+	&& wget --no-check-certificate https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux/releases/download/git-credential-manager-2.0.4/git-credential-manager-2.0.4.jar
+.PHONY: gcm_install
+gcm_install: $(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar
