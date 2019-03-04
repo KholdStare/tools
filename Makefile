@@ -2,7 +2,7 @@ THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
 .PHONY: all
-all: git_install ccache_install vim_install tmux_install ctags_install emacs_install fzf_install gdb_install cgdb_install dbeaver_install
+all: git_install ccache_install vim_install nvim_install tmux_install ctags_install emacs_install fzf_install gdb_install cgdb_install dbeaver_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
 INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
@@ -59,6 +59,16 @@ $(INSTALL_PREFIX)/bin/vim: $(SRC_DIR)/vim
 	$(call CONFIG_MAKE_INSTALL_TEMPLATE,--with-features=huge)
 .PHONY: vim_install
 vim_install: $(INSTALL_PREFIX)/bin/vim
+
+# ======================
+# nvim
+#
+$(SRC_DIR)/nvim:
+	$(call WGET_TEMPLATE,nvim,https://github.com/neovim/neovim/releases/download/nightly/nvim-linux64.tar.gz,gz)
+$(INSTALL_PREFIX)/bin/nvim: $(SRC_DIR)/nvim
+	cp -r $</* $(INSTALL_PREFIX)
+.PHONY: nvim_install
+nvim_install: $(INSTALL_PREFIX)/bin/nvim
 
 # ======================
 # fzf
