@@ -214,15 +214,16 @@ rtags_install: $(INSTALL_PREFIX)/bin/rdm
 
 
 # ======================
-# Ag
+# Ag (silver searcher)
 #
-$(SRC_DIR)/the_silver_searcher: | submodules
+$(SRC_DIR)/the_silver_searcher:
+	$(call WGET_TEMPLATE,the_silver_searcher,https://github.com/ggreer/the_silver_searcher/archive/2.2.0.tar.gz,gz)
 .PHONY: ag_install
 ag_install: $(INSTALL_PREFIX)/bin/ag
 
 # sudo apt-get install -y automake pkg-config libpcre3-dev zlib1g-dev liblzma-dev
 $(INSTALL_PREFIX)/bin/ag: $(SRC_DIR)/the_silver_searcher $(INSTALL_PREFIX)
-	cd the_silver_searcher \
+	cd $< \
 		&& ./build.sh --prefix=$(INSTALL_PREFIX) \
 		&& $(MAKE) install
 
@@ -282,5 +283,6 @@ valgrind_install: $(INSTALL_PREFIX)/bin/cachegrind
 $(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar:
 	cd $(INSTALL_PREFIX)/bin \
 	&& wget --no-check-certificate https://github.com/Microsoft/Git-Credential-Manager-for-Mac-and-Linux/releases/download/git-credential-manager-2.0.4/git-credential-manager-2.0.4.jar
+	&& chmod u+r git-credential-manager-2.0.4.jar
 .PHONY: gcm_install
 gcm_install: $(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar
