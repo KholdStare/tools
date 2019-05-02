@@ -229,14 +229,16 @@ $(INSTALL_PREFIX)/bin/ag: $(SRC_DIR)/the_silver_searcher $(INSTALL_PREFIX)
 
 
 # ======================
-# DBeaver
+# Rg (Ripgrep)
 #
-$(SRC_DIR)/dbeaver:
-	$(call WGET_TEMPLATE,dbeaver,https://dbeaver.jkiss.org/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz,gz)
-.PHONY: dbeaver_install
-$(INSTALL_PREFIX)/bin/dbeaver: $(SRC_DIR)/dbeaver
-	ln -s $</dbeaver $@
-dbeaver_install: $(INSTALL_PREFIX)/bin/dbeaver
+$(SRC_DIR)/ripgrep:
+	$(call WGET_TEMPLATE,ripgrep,https://github.com/BurntSushi/ripgrep/releases/download/11.0.1/ripgrep-11.0.1-x86_64-unknown-linux-musl.tar.gz,gz)
+.PHONY: rg_install
+rg_install: $(INSTALL_PREFIX)/bin/rg
+
+$(INSTALL_PREFIX)/bin/rg: $(SRC_DIR)/ripgrep $(INSTALL_PREFIX)
+	cp $(SRC_DIR)/ripgrep/rg $(INSTALL_PREFIX)/bin
+
 
 # ======================
 # Vertica Client drivers
@@ -248,6 +250,18 @@ $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar:
 	&& rm vertica-client.tar.gz
 .PHONY: vertica_drivers_install
 vertica_drivers_install: $(INSTALL_PREFIX)/opt/vertica/java/lib/vertica-jdbc-8.1.1-7.jar
+
+
+# ======================
+# DBeaver
+#
+$(SRC_DIR)/dbeaver:
+	$(call WGET_TEMPLATE,dbeaver,https://dbeaver.jkiss.org/files/dbeaver-ce-latest-linux.gtk.x86_64.tar.gz,gz)
+.PHONY: dbeaver_install
+$(INSTALL_PREFIX)/bin/dbeaver: $(SRC_DIR)/dbeaver
+	ln -s $</dbeaver $@
+dbeaver_install: $(INSTALL_PREFIX)/bin/dbeaver vertica_drivers_install
+
 
 # ======================
 # jucipp
