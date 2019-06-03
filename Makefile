@@ -2,7 +2,7 @@ THIS_DIR := $(realpath $(dir $(firstword $(MAKEFILE_LIST))))
 SRC_DIR := $(THIS_DIR)/src
 
 .PHONY: all
-all: git_install ccache_install vim_install nvim_install tmux_install ctags_install emacs_install fzf_install gdb_install cgdb_install dbeaver_install
+all: git_install ccache_install vim_install nvim_install tmux_install ctags_install emacs_install fzf_install gdb_install cgdb_install dbeaver_install nodejs_install
 
 INSTALL_PREFIX ?= $(THIS_DIR)
 INSTALL_PREFIX := $(realpath $(INSTALL_PREFIX))
@@ -31,7 +31,7 @@ WGET_TEMPLATE = cd $(SRC_DIR) \
 	&& rm $(1).tar.$(3)
 
 GIT_CLONE_TEMPLATE = cd $(SRC_DIR) \
-	&& git clone --recursive $(2) $(1) \
+	&& git clone --depth=1 --recursive $(2) $(1) \
 	&& cd $(1) \
 	&& git checkout $(3)
 
@@ -300,3 +300,27 @@ $(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar:
 	&& chmod u+r git-credential-manager-2.0.4.jar
 .PHONY: gcm_install
 gcm_install: $(INSTALL_PREFIX)/bin/git-credential-manager-2.0.4.jar
+
+# ======================
+# nodejs (please kill me)
+#
+$(INSTALL_PREFIX)/bin/node:
+	curl -sL install-node.now.sh/lts | sh -s -- --force --prefix=$(INSTALL_PREFIX)
+.PHONY: nodejs_install
+nodejs_install: $(INSTALL_PREFIX)/bin/node
+
+# ======================
+# ccls (cc language server)
+#
+$(SRC_DIR)/ccls:
+	$(call GIT_CLONE_TEMPLATE,ccls,https://github.com/MaskRay/ccls,master)
+$(INSTALL_PREFIX)/bin/ccls: $(SRC_DIR)/ccls $(INSTALL_PREFIX)/bin/node
+	cd $< \
+		&& mkdir -p build \
+		&& cd build \
+		&& rm -rf CMakeCache.txt CMakeFiles \
+		&& CC=$(shell which clang) CXX=$(shell which clang++) cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .. \
+		&& ninja \
+		&& cmake -DCMAKE_INSTALL_PREFIX=$(INSTALL_PREFIX) -P cmake_install.cmake
+.PHONY: ccls_install
+ccls_install: $(INSTALL_PREFIX)/bin/ccls
